@@ -1,0 +1,48 @@
+#TCP Syn scan
+alert tcp any any -> <iphost> any (msg:"tcp syn scan";priority:3;flags:S;classtype:network-scan;sid:001;)
+#Xmas scan
+alert tcp any any -> <iphost> any (msg:"xmas scan";priority:3;flags:FPU;classtype:network-scan;sid:002;)
+#Fin scan
+alert tcp any any -> <iphost> any (msg:"fin scan";priority:3;flags:F;classtype:network-scan;sid:003;)
+#Null scan
+alert tcp any any -> <iphost> any (msg:"null scan";priority:3;flags:0;classtype:network-scan;sid:004;)
+#UDP e TCP scan
+alert udp  any any -> <iphost> 53,111,137,80,139,8080,21,22,23,24,25 (msg:" UDP e TCP scan";priority:3;classtype:network-scan;sid:005;)
+alert tcp  any any -> <iphost> 53,111,137,80,139,8080,21,22,23,24,25 (msg:" UDP e TCP scan";priority:3;classtype:network-scan;sid:006;)
+#ACK scan
+alert tcp any any -> <iphost> any (msg:"ACK scan";priority:3;flags:A;classtype:network-scan;sid:007;)
+#DOS
+alert tcp any any -> <iphost> any (msg:"Ataque DoS";flow:stateless;detection_filter:track by_src,count 500,seconds 3;classtype:successful-dos;priority:2;sid:9;)
+#HTTP flood
+alert tcp any any -> <iphost> 80 (msg:"Http flood";flow:stateless;detection_filter:track by_src,count 50,seconds 5;classtype:successful-dos;priority:2;sid:010;)
+#DDOS
+alert tcp any any -> <iphost> any (msg:"Ataque DDoS";detection_filter:track by_dst,count 10000,seconds 1;classtype:successful-dos;priority:2;sid:011;)
+#Brute Force telnet
+alert tcp any 23 -> any any (msg:"Bruteforce no Telnet";classtype:suspicious-login;priority:3;content:"Login incorrect";nocase;offset:2;threshold:type both,track by_dst,count 10,seconds 30;sid: 001;)
+#Brute Force  FTP
+alert tcp any 21 -> any any (msg:" Bruteforce no FTP";classtype:suspicious-login;priority:3;content:"Login incorrect";nocase;offset:2;threshold:type both,track by_dst,count 10,seconds 30;sid:002;)
+#Brute Force SSH
+alert tcp any any -> any 22 (msg: "Bruteforce SSH";content:"SSH-";nocase;offset:2;threshold:type both,track by_dst,count 10,seconds 30; classtype:suspicious-login; priority:3;sid: 003;)
+#Brute Force MYSQL
+alert tcp any 3306 -> any any (msg: "Bruteforce MYSQL";content:"Bad handshake";nocase;threshold:type both,track by_dst,count 10,seconds 30; classtype:suspicious-login; priority:3;sid:004;)
+#Brute Force POSTGRESQL
+alert tcp <ip-rede-interna> 5432 -> any any (msg:"Bruteforce POSTGRES";content:"authentication failed"; threshold: type both, track by_dst, count 10, seconds 60;sid:005;)
+#Brute Force Web
+alert tcp any any -> any 80 (msg:"Web bruteforce"; sid:6; content:"POST /dvwa/login.php HTTP/1.0"; threshold: type both, track by_src, count 10, seconds 60;)
+#Brute Force PHPMYADMIN
+alert tcp any any -> any 80 (msg:"Bruteforce phpMyAdmin"; sid:7; content:"POST /phpMyAdmin/index.php? HTTP/1.0"; threshold: type both, track by_src, count 10, seconds 60;)
+#Escaneamento de Diretorio twiki
+alert tcp any any -> any 80 (msg:"scanner de diretório twiki";classtype:successful-recon-largescale;priority:3;threshold:type threshold, track by_src,count 50, seconds 2; content:" /twiki/"; nocase;sid:1000000008;)
+#Brute Force TomCat
+alert tcp <ip-rede-interna> 8180 -> any any (msg:"Bruteforce Apache"; sid:9; content:"HTTP/1.1 401 Unauthorized"; threshold: type both, track by_src, count 10, seconds 60;)
+#Escaneamento de diretorio porta 8180
+alert tcp <ip-rede-interna> 8180 -> any any (msg:"Possivel directory transversal"; sid:10; content:"HTTP/1.1 404 Not Found"; threshold: type both, track by_src, count 10, seconds 60;)
+#Brute Force Diretorios
+alert tcp any any -> any 80,443 (msg:" BruteForce de diretório";classtype:successful-recon-largescale;priority:3; threshold:type threshold, track by_src,count 500, seconds 10; content:"GET"; nocase;sid:1048;)
+#Escaneamento de senha padrão
+alert tcp any any -> any 8080 (msg:"Escaneamento de senha padrão";classtype:default-login-attempt;priority:2; sid:17156;)
+#Ataque CVE-2007-2447
+alert tcp any  any -> <ip-host> [139,445] ( msg:"SERVER-SAMBA Samba username map script command injection attempt"; flow:to_server,established; content:"|FF|SMBs",depth 5,offset 4; content:"|00 00|",within 3,distance 2; content:"|00|",within 1,distance 25; content:"|00 00 00 00|",within 4,distance 16; byte_extract:2,-8,ansi_pw_len,relative,little; byte_jump:2,0,relative,little,post_offset 10; content:"/=",within 2,distance ansi_pw_len; pcre:"/^[\x21-\x2f\x3a-\x3f\x5b-\x60\x7b-\x7e]/R"; metadata:policy max-detect-ips drop; reference:cve,2007-2447; reference:url,labs.idefense.com/intelligence/vulnerabilities/display.php?id=534; classtype:attempted-admin; sid:21164; rev:6;)
+#Ataque CVE-2012-2122
+alert tcp any any -> any 3306  (msg:"SERVER-MYSQL MySQL/MariaDB client authentication bypass attempt";reference:cve,2012-2122; flags:SA; threshold:type threshold, track by_src,count 50, seconds 1; content:" password=bad"; nocase;sid:014;)
+#Ataque CVE-2007-3280
