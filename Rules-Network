@@ -1,0 +1,19 @@
+#TCP Syn scan
+alert tcp any any -> <iphost> any (msg:"tcp syn scan";priority:3;flags:S;classtype:network-scan;sid:001;)
+#Xmas scan
+alert tcp any any -> <iphost> any (msg:"xmas scan";priority:3;flags:FPU;classtype:network-scan;sid:002;)
+#Fin scan
+alert tcp any any -> <iphost> any (msg:"fin scan";priority:3;flags:F;classtype:network-scan;sid:003;)
+#Null scan
+alert tcp any any -> <iphost> any (msg:"null scan";priority:3;flags:0;classtype:network-scan;sid:004;)
+#UDP e TCP scan
+alert udp  any any -> <iphost> 53,111,137,80,139,8080,21,22,23,24,25 (msg:" UDP e TCP scan";priority:3;classtype:network-scan;sid:005;)
+alert tcp  any any -> <iphost> 53,111,137,80,139,8080,21,22,23,24,25 (msg:" UDP e TCP scan";priority:3;classtype:network-scan;sid:006;)
+#ACK scan
+alert tcp any any -> <iphost> any (msg:"ACK scan";priority:3;flags:A;classtype:network-scan;sid:007;)
+#DOS
+alert tcp any any -> <iphost> any (msg:"Ataque DoS";flow:stateless;detection_filter:track by_src,count 500,seconds 3;classtype:successful-dos;priority:2;sid:9;)
+#HTTP flood
+alert tcp any any -> <iphost> 80 (msg:"Http flood";flow:stateless;detection_filter:track by_src,count 50,seconds 5;classtype:successful-dos;priority:2;sid:010;)
+#DDOS
+alert tcp any any -> <iphost> any (msg:"Ataque DDoS";detection_filter:track by_dst,count 10000,seconds 1;classtype:successful-dos;priority:2;sid:011;)
